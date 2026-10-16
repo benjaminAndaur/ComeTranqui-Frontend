@@ -81,7 +81,11 @@ export type UserProfile = {
   name?: string;
   email?: string;
   picture?: string;
+  /** Grupos de Cognito (cognito:groups). "admin" habilita la administración de mensajería. */
+  grupos: string[];
 };
+
+export const esAdmin = (perfil: UserProfile | null) => perfil?.grupos.includes("admin") ?? false;
 
 export function getUserProfile(): UserProfile | null {
   const idToken = getIdToken();
@@ -94,6 +98,7 @@ export function getUserProfile(): UserProfile | null {
       name: claims.name,
       email: claims.email,
       picture: claims.picture,
+      grupos: Array.isArray(claims["cognito:groups"]) ? claims["cognito:groups"] : [],
     };
   } catch {
     return null;

@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { loginUrl, clearAccessToken, type UserProfile } from "@/lib/auth";
+import Link from "next/link";
+import { loginUrl, clearAccessToken, esAdmin, type UserProfile } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { notificarCambioSesion, useSesion } from "@/lib/sesion";
 import { buscarLocales, buscarOfertas, localesDeRespaldo } from "@/lib/publico";
 import OfertasSection from "./components/OfertasSection";
 import MapaSection from "./components/MapaSection";
+import Notificaciones from "./components/Notificaciones";
 
 // ────────────────────────────────────────────
 //  Tipos
@@ -183,7 +185,19 @@ function Header() {
         {/* CTA */}
         <div className="hidden md:flex items-center gap-3">
           {loggedIn ? (
-            <ProfileMenu profile={profile} onLogout={handleLogout} />
+            <>
+              {esAdmin(profile) && (
+                <Link
+                  id="link-admin"
+                  href="/admin"
+                  className="px-4 py-2 text-sm font-semibold text-[#563B2D] border border-[#C3A69A] rounded-full hover:border-[#A46C54] hover:text-[#A46C54] transition-all"
+                >
+                  Administración
+                </Link>
+              )}
+              <Notificaciones />
+              <ProfileMenu profile={profile} onLogout={handleLogout} />
+            </>
           ) : (
             <button
               id="btn-login"
@@ -229,6 +243,11 @@ function Header() {
               {link.label}
             </a>
           ))}
+          {loggedIn && esAdmin(profile) && (
+            <Link href="/admin" className="text-sm font-semibold text-[#A46C54] py-2">
+              Administración de mensajería
+            </Link>
+          )}
           <div className="flex gap-3 pt-2 border-t border-[#D1C9C5]/50">
             {loggedIn ? (
               <div className="flex-1 flex items-center gap-3">
