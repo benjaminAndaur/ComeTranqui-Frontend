@@ -1,14 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  loginUrl,
-  isLoggedIn,
-  clearAccessToken,
-  getUserProfile,
-  type UserProfile,
-} from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { loginUrl, clearAccessToken, type UserProfile } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
+import { notificarCambioSesion, useSesion } from "@/lib/sesion";
 import { buscarLocales, buscarOfertas, localesDeRespaldo } from "@/lib/publico";
 import OfertasSection from "./components/OfertasSection";
 import MapaSection from "./components/MapaSection";
@@ -95,24 +91,23 @@ function ProfileMenu({
 function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const { loggedIn, profile } = useSesion();
+  const router = useRouter();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
-    setLoggedIn(isLoggedIn());
-    setProfile(getUserProfile());
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const handleLogin = () => {
-    window.location.href = loginUrl();
+    window.location.assign(loginUrl());
   };
 
   const handleLogout = () => {
     clearAccessToken();
-    window.location.href = "/";
+    notificarCambioSesion();
+    router.replace("/");
   };
 
   const navLinks = [
@@ -493,13 +488,9 @@ type Local = {
 };
 
 function LocalesProtegidos() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const { loggedIn } = useSesion();
   const [locales, setLocales] = useState<Local[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setLoggedIn(isLoggedIn());
-  }, []);
 
   useEffect(() => {
     if (!loggedIn) return;

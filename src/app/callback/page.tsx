@@ -3,29 +3,28 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { exchangeCodeForTokens, saveAccessToken, saveIdToken } from "@/lib/auth";
+import { notificarCambioSesion } from "@/lib/sesion";
 
 function CallbackInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [error, setError] = useState<string | null>(null);
+  const code = searchParams.get("code");
+  const [errorIntercambio, setErrorIntercambio] = useState<string | null>(null);
+  const error = code ? errorIntercambio : "No se recibió código de autorización.";
 
   useEffect(() => {
-    const code = searchParams.get("code");
-    if (!code) {
-      setError("No se recibió código de autorización.");
-      return;
-    }
-
+    if (!code) return;
     exchangeCodeForTokens(code)
       .then(({ access_token, id_token }) => {
         saveAccessToken(access_token);
         saveIdToken(id_token);
+        notificarCambioSesion();
         router.replace("/");
       })
       .catch(() => {
-        setError("No se pudo completar el inicio de sesión.");
+        setErrorIntercambio("No se pudo completar el inicio de sesión.");
       });
-  }, [searchParams, router]);
+  }, [code, router]);
 
   return (
     <p className="text-[#563B2D] font-medium">

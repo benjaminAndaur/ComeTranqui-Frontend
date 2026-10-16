@@ -1,0 +1,7 @@
+# Si existe este archivo, la CLI de Vercel no usa .gitignore. Se sube public/datos/respaldo.json (generado al
+# desplegar por scripts/actualizar-respaldo.mjs) pero no dependencias, builds ni variables locales.
+node_modules
+.next
+.env*
+!.env.example
+.vercel

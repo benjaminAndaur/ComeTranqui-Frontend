@@ -16,17 +16,25 @@ if [[ -n "$(git status --porcelain)" ]]; then
   echo "Hay cambios sin commit: se despliega solo lo que está en HEAD ($(git rev-parse --short HEAD))."
 fi
 
+echo "==> Actualizando respaldo de datos (no se versiona: es generado)"
+node "$(dirname "$0")/actualizar-respaldo.mjs" || echo "    API no disponible: se mantiene el respaldo local existente"
+RESPALDO="$(dirname "$0")/../public/datos/respaldo.json"
+
 echo "==> Empaquetando $(git rev-parse --short HEAD)"
 git archive --format=tar.gz -o "$PAQUETE" HEAD
 
 echo "==> Subiendo a $HOST"
 scp "${SSH_OPTS[@]}" "$PAQUETE" "ec2-user@$HOST:/tmp/frontend.tar.gz"
 rm -f "$PAQUETE"
+if [[ -f "$RESPALDO" ]]; then
+  scp "${SSH_OPTS[@]}" "$RESPALDO" "ec2-user@$HOST:/tmp/respaldo.json"
+fi
 
 ssh "${SSH_OPTS[@]}" "ec2-user@$HOST" "set -euo pipefail
   cd $REMOTO
   rm -rf .next.anterior && { [ -d .next ] && cp -a .next .next.anterior || true; }
   tar -xzf /tmp/frontend.tar.gz -C $REMOTO && rm -f /tmp/frontend.tar.gz
+  if [ -f /tmp/respaldo.json ]; then mkdir -p public/datos && mv /tmp/respaldo.json public/datos/respaldo.json; fi
   npm install --no-audit --no-fund
   NODE_OPTIONS=--max-old-space-size=1024 npm run build
   sudo systemctl restart cometranqui-frontend

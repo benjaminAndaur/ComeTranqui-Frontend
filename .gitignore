@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Datos de respaldo: se generan al desplegar (scripts/actualizar-respaldo.mjs)
+/public/datos/
