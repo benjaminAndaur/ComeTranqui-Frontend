@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Come Tranqui — Frontend
 
-## Getting Started
+Interfaz web de **Come Tranqui** (DSY1107 — Desarrollo Cloud Native I, Duoc UC): ofertas de productos aptos, mapa de
+locales seguros y administración de la mensajería para personas con restricciones alimentarias.
 
-First, run the development server:
+- Producción: https://cometranqui.vercel.app (y EC2 + Nginx en `https://18.204.236.209`)
+- Backend: [cometranqui_back](https://github.com/benjaminAndaur/cometranqui_back)
+
+## Funcionalidades
+
+| Vista | Archivos | Detalle |
+|---|---|---|
+| Inicio, ofertas y mapa | `src/app/page.tsx`, `src/app/components/OfertasSection.tsx`, `MapaSection.tsx` | Ofertas con filtros, mapa Leaflet de locales por nivel de seguridad |
+| Login con Google | `src/lib/auth.ts`, `src/lib/sesion.ts`, `src/app/callback/page.tsx` | Cognito Hosted UI (código de autorización); token en `sessionStorage` |
+| Notificaciones | `src/app/components/Notificaciones.tsx`, `src/lib/notificaciones.ts` | Campana con bajas de precio y suscripción por restricción |
+| **Administración de mensajería** | `src/app/admin/**`, `src/lib/admin.ts` | Solo grupo `admin`: destinos, reglas, consumidores (lag), fallidos, mensajes de prueba y catálogo |
+
+Las solicitudes protegidas usan `apiFetch` (`src/lib/api.ts`), que adjunta el token de Cognito. La API de
+administración responde errores Problem Details; `src/lib/admin.ts` los convierte en mensajes por campo.
+
+**Modo respaldo:** si el backend (AWS Learner Lab) está apagado, la web muestra los últimos datos publicados
+(`public/datos/respaldo.json`, generado por `npm run respaldo` al desplegar; no se versiona).
+
+## Desarrollo
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local    # NEXT_PUBLIC_API_URL, NEXT_PUBLIC_COGNITO_DOMAIN, NEXT_PUBLIC_COGNITO_CLIENT_ID
+npm install
+npm run dev                   # http://localhost:3000
+npm run lint && npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Despliegue
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run respaldo && vercel deploy --prod      # Vercel
+bash scripts/deploy-ec2.sh                     # EC2 (compila allá y reinicia el servicio)
+```
